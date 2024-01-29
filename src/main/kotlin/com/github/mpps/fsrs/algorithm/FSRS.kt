@@ -20,9 +20,9 @@ class FSRS(
 
     fun repeat(card: Card, now: OffsetDateTime): RecordLog {
         val s = SchedulingCard(card, now).updateState(card.state)
-        var easyInterval = 0L
-        var goodInterval = 0L
-        var hardInterval = 0L
+        var easyInterval: Long
+        var goodInterval: Long
+        var hardInterval: Long
 
         if (card.state == State.New) {
             this.initDifficultiesAndStabilities(s)
@@ -35,13 +35,13 @@ class FSRS(
         }
 
         if (card.state == State.Learning || card.state == State.Relearning) {
-            hardInterval = 0;
+            hardInterval = 0
             goodInterval = this.nextInterval(s.good.stability)
             easyInterval = max(
                 this.nextInterval(s.easy.stability),
                 goodInterval + 1,
-            );
-            s.schedule(now, hardInterval, goodInterval, easyInterval);
+            )
+            s.schedule(now, hardInterval, goodInterval, easyInterval)
         }
 
         if (card.state == State.Review) {
@@ -66,7 +66,7 @@ class FSRS(
     }
 
 
-    fun initDifficultiesAndStabilities(s: SchedulingCard) {
+    private fun initDifficultiesAndStabilities(s: SchedulingCard) {
         s.again.difficulty = this.initDifficulty(Rating.Again)
         s.again.stability = this.initStability(Rating.Again)
         s.hard.difficulty = this.initDifficulty(Rating.Hard)
@@ -77,54 +77,54 @@ class FSRS(
         s.easy.stability = this.initStability(Rating.Easy)
     }
 
-    fun nextDs(
+    private fun nextDs(
         s: SchedulingCard,
         lastD: Double,
         lastS: Double,
         retrievability: Double,
     ) {
-        s.again.difficulty = this.nextDifficulty(lastD, Rating.Again);
-        s.again.stability = this.nextForgetStability(
+        s.again.difficulty = nextDifficulty(lastD, Rating.Again)
+        s.again.stability = nextForgetStability(
             lastD,
             lastS,
             retrievability,
-        );
-        s.hard.difficulty = this.nextDifficulty(lastD, Rating.Hard);
-        s.hard.stability = this.nextRecallStability(
+        )
+        s.hard.difficulty = nextDifficulty(lastD, Rating.Hard)
+        s.hard.stability = nextRecallStability(
             lastD,
             lastS,
             retrievability,
             Rating.Hard,
-        );
-        s.good.difficulty = this.nextDifficulty(lastD, Rating.Good);
-        s.good.stability = this.nextRecallStability(
+        )
+        s.good.difficulty = nextDifficulty(lastD, Rating.Good)
+        s.good.stability = nextRecallStability(
             lastD,
             lastS,
             retrievability,
             Rating.Good,
-        );
-        s.easy.difficulty = this.nextDifficulty(lastD, Rating.Easy);
-        s.easy.stability = this.nextRecallStability(
+        )
+        s.easy.difficulty = nextDifficulty(lastD, Rating.Easy)
+        s.easy.stability = nextRecallStability(
             lastD,
             lastS,
             retrievability,
             Rating.Easy,
-        );
+        )
     }
 
     private fun initDifficulty(rating: Rating): Double {
         return min(
             max(this.parameters.w[4] - (rating.value - 3) * this.parameters.w[5], 1.0),
             10.0,
-        );
+        )
     }
 
     private fun initStability(rating: Rating): Double {
-        return max(this.parameters.w[rating.value - 1], 0.1);
+        return max(this.parameters.w[rating.value - 1], 0.1)
     }
 
     private fun nextInterval(s: Double): Long {
-        val newInterval = this.applyFuzz(s * internalModifier);
+        val newInterval = this.applyFuzz(s * internalModifier)
         return min(
             max(Math.round(newInterval).toDouble(), 1.0),
             this.parameters.maximumInterval,
@@ -141,10 +141,10 @@ class FSRS(
     }
 
     private fun nextDifficulty(d: Double, g: Rating): Double {
-        val nextD = d - this.parameters.w[6] * (g.value - 3);
+        val nextD = d - this.parameters.w[6] * (g.value - 3)
         return constrainDifficulty(
             meanReversion(this.parameters.w[4], nextD),
-        );
+        )
     }
 
     private fun constrainDifficulty(difficulty: Double): Double {
@@ -155,7 +155,7 @@ class FSRS(
     }
 
     private fun meanReversion(init: Double, current: Double): Double {
-        return this.parameters.w[7] * init + (1 - this.parameters.w[7]) * current;
+        return this.parameters.w[7] * init + (1 - this.parameters.w[7]) * current
     }
 
     private fun nextRecallStability(d: Double, s: Double, r: Double, g: Rating): Double {
