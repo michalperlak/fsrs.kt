@@ -5,12 +5,12 @@ import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 
 class SchedulingCard(card: Card, now: OffsetDateTime) {
-    private var again: Card
-    private var hard: Card
-    private var good: Card
-    private var easy: Card
-    private var lastReview: OffsetDateTime = card.lastReview ?: card.due
-    private var lastElapsedDays: Long = card.elapsedDays
+    var again: Card
+    var hard: Card
+    var good: Card
+    var easy: Card
+    var lastReview: OffsetDateTime = card.lastReview ?: card.due
+    var lastElapsedDays: Long = card.elapsedDays
 
     init {
         card.elapsedDays =
