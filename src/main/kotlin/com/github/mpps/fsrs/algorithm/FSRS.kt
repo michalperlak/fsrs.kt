@@ -1,17 +1,69 @@
 package com.github.mpps.fsrs.algorithm
 
+import com.github.mpps.fsrs.model.Card
 import com.github.mpps.fsrs.model.Rating
+import com.github.mpps.fsrs.model.RecordLog
+import com.github.mpps.fsrs.model.State
 import com.github.mpps.fsrs.scheduler.SchedulingCard
 import java.math.MathContext
 import java.math.RoundingMode
+import java.time.OffsetDateTime
 import kotlin.math.*
 import kotlin.random.Random
 
-class FSRSAlgorithm(
+class FSRS(
     private val parameters: FSRSParameters
 ) {
 
     private val internalModifier: Double = (parameters.requestRetention.pow(1 / DECAY) - 1) / FACTOR
+
+
+    fun repeat(card: Card, now: OffsetDateTime): RecordLog {
+        val s = SchedulingCard(card, now).updateState(card.state)
+        var easyInterval = 0L
+        var goodInterval = 0L
+        var hardInterval = 0L
+
+        if (card.state == State.New) {
+            this.initDifficultiesAndStabilities(s)
+            s.again.due = now.plusDays(1)
+            s.hard.due = now.plusDays(5)
+            s.good.due = now.plusDays(10)
+            easyInterval = nextInterval(s.easy.stability)
+            s.easy.scheduledDays = easyInterval
+            s.easy.due = now.plusDays(easyInterval)
+        }
+
+        if (card.state == State.Learning || card.state == State.Relearning) {
+            hardInterval = 0;
+            goodInterval = this.nextInterval(s.good.stability)
+            easyInterval = max(
+                this.nextInterval(s.easy.stability),
+                goodInterval + 1,
+            );
+            s.schedule(now, hardInterval, goodInterval, easyInterval);
+        }
+
+        if (card.state == State.Review) {
+            val interval = card.elapsedDays
+            val lastD = card.difficulty
+            val lastS = card.stability
+            val retrievability = forgettingCurve(interval, lastS)
+            nextDs(s, lastD, lastS, retrievability)
+            hardInterval = nextInterval(s.hard.stability)
+            goodInterval = nextInterval(s.good.stability)
+            hardInterval = min(hardInterval, goodInterval)
+            goodInterval = max(goodInterval, hardInterval + 1)
+            easyInterval = max(
+                nextInterval(s.easy.stability),
+                goodInterval + 1,
+            )
+            s.schedule(now, hardInterval, goodInterval, easyInterval)
+        }
+
+
+        return s.record_log(card, now)
+    }
 
 
     fun initDifficultiesAndStabilities(s: SchedulingCard) {
@@ -62,21 +114,21 @@ class FSRSAlgorithm(
 
     private fun initDifficulty(rating: Rating): Double {
         return min(
-            max(this.parameters.w[4] - (rating.ordinal - 3) * this.parameters.w[5], 1.0),
+            max(this.parameters.w[4] - (rating.value - 3) * this.parameters.w[5], 1.0),
             10.0,
         );
     }
 
     private fun initStability(rating: Rating): Double {
-        return max(this.parameters.w[rating.ordinal - 1], 0.1);
+        return max(this.parameters.w[rating.value - 1], 0.1);
     }
 
-    private fun nextInterval(s: Double): Double {
+    private fun nextInterval(s: Double): Long {
         val newInterval = this.applyFuzz(s * internalModifier);
         return min(
             max(Math.round(newInterval).toDouble(), 1.0),
             this.parameters.maximumInterval,
-        )
+        ).toLong()
     }
 
     private fun applyFuzz(ivl: Double): Double {
@@ -89,7 +141,7 @@ class FSRSAlgorithm(
     }
 
     private fun nextDifficulty(d: Double, g: Rating): Double {
-        val nextD = d - this.parameters.w[6] * (g.ordinal - 3);
+        val nextD = d - this.parameters.w[6] * (g.value - 3);
         return constrainDifficulty(
             meanReversion(this.parameters.w[4], nextD),
         );
@@ -129,7 +181,7 @@ class FSRSAlgorithm(
             .toBigDecimal(MathContext(2, RoundingMode.HALF_UP))
             .toDouble()
 
-    private fun forgettingCurve(elapsedDays: Double, stability: Double): Double {
+    private fun forgettingCurve(elapsedDays: Long, stability: Double): Double {
         return (1 + FACTOR * elapsedDays / stability).pow(DECAY)
     }
 

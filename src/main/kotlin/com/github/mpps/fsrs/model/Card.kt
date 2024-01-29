@@ -12,4 +12,20 @@ data class Card(
     var lapses: Long,
     var state: State,
     var lastReview: OffsetDateTime?
-)
+) {
+
+    companion object {
+        fun createEmpty(now: OffsetDateTime): Card =
+            Card(
+                due = now,
+                stability = 0.0,
+                difficulty = 0.0,
+                elapsedDays = 0,
+                scheduledDays = 0,
+                reps = 0,
+                lapses = 0,
+                state = State.New,
+                lastReview = null,
+            )
+    }
+}
