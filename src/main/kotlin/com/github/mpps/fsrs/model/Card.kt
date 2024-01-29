@@ -3,13 +3,13 @@ package com.github.mpps.fsrs.model
 import java.time.OffsetDateTime
 
 data class Card(
-    val due: OffsetDateTime,
-    val stability: Int,
-    val difficulty: Int,
-    val elapsedDays: Int,
-    val scheduledDays: Int,
-    val reps: Int,
-    val lapses: Int,
-    val state: State,
-    val lastReview: OffsetDateTime?
+    var due: OffsetDateTime,
+    var stability: Long,
+    var difficulty: Long,
+    var elapsedDays: Long,
+    var scheduledDays: Long,
+    var reps: Long,
+    var lapses: Long,
+    var state: State,
+    var lastReview: OffsetDateTime?
 )

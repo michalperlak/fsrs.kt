@@ -3,7 +3,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### IntelliJ IDEA ###
+### LongelliJ IDEA ###
 .idea/
 *.iws
 *.iml

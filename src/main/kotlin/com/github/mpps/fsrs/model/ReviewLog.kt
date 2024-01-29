@@ -6,9 +6,10 @@ data class ReviewLog(
     val rating: Rating,
     val state: State,
     val due: OffsetDateTime,
-    val stability: Int,
-    val difficulty: Int,
-    val elapsedDays: List<Int>,
-    val scheduledDays: Int,
+    val stability: Long,
+    val difficulty: Long,
+    val elapsedDays: Long,
+    val lastElapsedDays: Long,
+    val scheduledDays: Long,
     val review: OffsetDateTime
 )
