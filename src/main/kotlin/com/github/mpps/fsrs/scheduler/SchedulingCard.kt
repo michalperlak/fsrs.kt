@@ -9,8 +9,8 @@ class SchedulingCard(card: Card, now: OffsetDateTime) {
     var hard: Card
     var good: Card
     var easy: Card
-    var lastReview: OffsetDateTime = card.lastReview ?: card.due
-    var lastElapsedDays: Long = card.elapsedDays
+    private var lastReview: OffsetDateTime = card.lastReview ?: card.due
+    private var lastElapsedDays: Long = card.elapsedDays
 
     init {
         card.elapsedDays =
@@ -39,7 +39,7 @@ class SchedulingCard(card: Card, now: OffsetDateTime) {
             this.hard.state = State.Review
             this.good.state = State.Review
             this.easy.state = State.Review
-            this.again.lapses += 1;
+            this.again.lapses += 1
         }
         return this
     }
@@ -62,7 +62,7 @@ class SchedulingCard(card: Card, now: OffsetDateTime) {
         return this
     }
 
-    fun record_log(card: Card, now: OffsetDateTime): RecordLog =
+    fun recordLog(card: Card, now: OffsetDateTime): RecordLog =
         RecordLog(
             mapOf(
                 Rating.Again to RecordLogItem(

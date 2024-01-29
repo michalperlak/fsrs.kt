@@ -62,7 +62,7 @@ class FSRS(
         }
 
 
-        return s.record_log(card, now)
+        return s.recordLog(card, now)
     }
 
 
