@@ -1,4 +1,4 @@
-package com.github.mpps.model
+package com.github.mpps.fsrs.model
 
 import java.time.OffsetDateTime
 
