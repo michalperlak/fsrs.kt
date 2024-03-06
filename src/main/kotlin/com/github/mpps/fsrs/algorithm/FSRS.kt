@@ -12,7 +12,7 @@ import kotlin.math.*
 import kotlin.random.Random
 
 class FSRS(
-    private val parameters: FSRSParameters
+    private val parameters: FSRSParameters = FSRSParameters()
 ) {
 
     private val internalModifier: Double = (parameters.requestRetention.pow(1 / DECAY) - 1) / FACTOR
